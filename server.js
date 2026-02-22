@@ -1,7 +1,9 @@
 const express = require("express");
+const dotenv = require("dotenv");
 const connectDB = require("./config/db");
-const testRoutes = require("./routes/testRoutes");
 const expenseRoutes = require("./routes/expenseRoutes");
+
+dotenv.config();
 
 const app = express();
 
@@ -10,7 +12,6 @@ app.use(express.static("public"));
 
 connectDB();
 
-app.use("/", testRoutes);
 app.use("/", expenseRoutes);
 
 const PORT = 3000;
