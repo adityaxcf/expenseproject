@@ -1,9 +1,10 @@
-const express = require("express");
-const dotenv = require("dotenv");
-const connectDB = require("./config/db");
-const expenseRoutes = require("./routes/expenseRoutes");
+require("dotenv").config();
 
-dotenv.config();
+const express = require("express");
+const connectDB = require("./config/db");
+
+const expenseRoutes = require("./routes/expenseRoutes");
+const authRoutes = require("./routes/authRoutes");
 
 const app = express();
 
@@ -12,7 +13,9 @@ app.use(express.static("public"));
 
 connectDB();
 
-app.use("/", expenseRoutes);
+// Routes
+app.use("/api", authRoutes);
+app.use("/api", expenseRoutes);
 
 const PORT = 3000;
 app.listen(PORT, () => {
