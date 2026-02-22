@@ -6,25 +6,39 @@ const connectDB = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
 const expenseRoutes = require("./routes/expenseRoutes");
 
+const path = require("path");
+
 const app = express();
 
+// ========================
 // Middleware
+// ========================
 app.use(express.json());
-app.use(express.static("public"));
 
-// Connect Database
+// Serve frontend (public folder)
+app.use(express.static(path.join(__dirname, "public")));
+
+// ========================
+// Connect MongoDB
+// ========================
 connectDB();
 
-// Routes
+// ========================
+// API Routes
+// ========================
 app.use("/api", authRoutes);
 app.use("/api", expenseRoutes);
 
-// Default route → Login page
+// ========================
+// Default Route → Login Page
+// ========================
 app.get("/", (req, res) => {
-    res.sendFile(__dirname + "/public/login.html");
+    res.sendFile(path.join(__dirname, "public", "login.html"));
 });
 
-// IMPORTANT for Render
+// ========================
+// Render PORT Fix (IMPORTANT)
+// ========================
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
