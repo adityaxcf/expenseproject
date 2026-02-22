@@ -4,49 +4,63 @@
     <title>Expense Tracker</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body { font-family: Arial; background:#f4f4f4; }
+        body {
+            font-family: Arial;
+            background: #f4f6f8;
+            padding: 20px;
+        }
         .container {
-            width: 600px;
-            margin: 40px auto;
+            max-width: 800px;
+            margin: auto;
             background: white;
             padding: 20px;
             border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
-        input { width:100%; margin:5px 0; padding:8px; }
-        button { padding:8px 12px; margin-top:5px; }
-        li { margin-bottom:5px; }
+        input {
+            display: block;
+            width: 100%;
+            margin: 8px 0;
+            padding: 8px;
+        }
+        button {
+            padding: 6px 12px;
+            margin-top: 5px;
+        }
+        li {
+            margin-bottom: 6px;
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>Expense Tracker</h2>
-    <button onclick="logout()">Logout</button>
 
-    <h3>Add Expense</h3>
-    <form id="expenseForm">
-        <input id="title" placeholder="Title" required>
-        <input id="amount" type="number" placeholder="Amount" required>
-        <input id="category" placeholder="Category" required>
-        <button type="submit">Save</button>
-    </form>
+<h2>Expense Tracker</h2>
+<button onclick="logout()">Logout</button>
 
-    <h3>Expenses</h3>
-    <ul id="expenseList"></ul>
-    <h4 id="total">Total: ₹0</h4>
+<h3>Add Expense</h3>
+<form id="expenseForm">
+    <input id="title" placeholder="Title" required>
+    <input id="amount" type="number" placeholder="Amount" required>
+    <input id="category" placeholder="Category" required>
+    <button type="submit">Save</button>
+</form>
 
-    <h3>Category Summary</h3>
-    <div id="summary"></div>
+<h3>Expenses</h3>
+<ul id="expenseList"></ul>
+<h4 id="total">Total: ₹0</h4>
 
-    <h3>Spending Chart</h3>
-    <canvas id="chart"></canvas>
+<h3>Category Summary</h3>
+<div id="summary"></div>
+
+<h3>Spending Chart</h3>
+<canvas id="chart"></canvas>
+
 </div>
 
 <script>
 const token = localStorage.getItem("token");
 
-// If not logged in
 if (!token) {
     window.location.href = "login.html";
 }
@@ -58,29 +72,29 @@ function logout() {
 
 let chart;
 
-// Load expenses
 async function loadExpenses() {
     const res = await fetch("/api/expenses", {
         headers: {
-            Authorization: "Bearer " + token
+            Authorization: token
         }
     });
 
     if (res.status === 401) {
-        alert("Session expired. Login again.");
+        alert("Session expired. Please login again.");
         logout();
         return;
     }
 
     const expenses = await res.json();
 
-    if (!Array.isArray(expenses)) return;
-
     const list = document.getElementById("expenseList");
+    const summary = document.getElementById("summary");
+
     list.innerHTML = "";
+    summary.innerHTML = "";
 
     let total = 0;
-    const categoryTotals = {};
+    let categoryTotals = {};
 
     expenses.forEach(exp => {
         const li = document.createElement("li");
@@ -95,17 +109,15 @@ async function loadExpenses() {
         categoryTotals[exp.category] += exp.amount;
     });
 
-    document.getElementById("total").textContent = "Total: ₹" + total;
+    document.getElementById("total").innerText = "Total: ₹" + total;
 
-    // Category summary
-    const summaryDiv = document.getElementById("summary");
-    summaryDiv.innerHTML = "";
-    Object.keys(categoryTotals).forEach(cat => {
-        summaryDiv.innerHTML += cat + ": ₹" + categoryTotals[cat] + "<br>";
-    });
+    for (let cat in categoryTotals) {
+        const p = document.createElement("p");
+        p.innerText = cat + ": ₹" + categoryTotals[cat];
+        summary.appendChild(p);
+    }
 
-    // Chart
-    const ctx = document.getElementById("chart");
+    const ctx = document.getElementById("chart").getContext("2d");
 
     if (chart) chart.destroy();
 
@@ -120,19 +132,18 @@ async function loadExpenses() {
     });
 }
 
-// Add expense
 document.getElementById("expenseForm").addEventListener("submit", async function(e) {
     e.preventDefault();
 
     const title = document.getElementById("title").value;
-    const amount = Number(document.getElementById("amount").value);
+    const amount = document.getElementById("amount").value;
     const category = document.getElementById("category").value;
 
     await fetch("/api/expenses", {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
-            Authorization: "Bearer " + token
+            Authorization: token
         },
         body: JSON.stringify({
             title,
@@ -141,7 +152,7 @@ document.getElementById("expenseForm").addEventListener("submit", async function
         })
     });
 
-    document.getElementById("expenseForm").reset();
+    e.target.reset();
     loadExpenses();
 });
 
