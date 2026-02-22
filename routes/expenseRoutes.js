@@ -1,31 +1,50 @@
 const express = require("express");
 const router = express.Router();
 const Expense = require("../models/expense");
+const auth = require("../middleware/auth");
 
-// GET all expenses
-router.get("/expenses", async (req, res) => {
-    const expenses = await Expense.find();
+// Get user expenses only
+router.get("/expenses", auth, async (req, res) => {
+    const expenses = await Expense.find({ user: req.user.id });
     res.json(expenses);
 });
 
-// ADD expense
-router.post("/expenses", async (req, res) => {
-    try {
-        const { title, amount, category } = req.body;
+// Add expense
+router.post("/expenses", auth, async (req, res) => {
+    const { title, amount, category } = req.body;
 
-        const expense = new Expense({
-            title,
-            amount,
-            category
-        });
+    const expense = new Expense({
+        title,
+        amount,
+        category,
+        user: req.user.id
+    });
 
-        await expense.save();
+    await expense.save();
+    res.json(expense);
+});
 
-        res.json({ message: "Expense added successfully" });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "Error adding expense" });
-    }
+// Update expense
+router.put("/expenses/:id", auth, async (req, res) => {
+    const { title, amount, category } = req.body;
+
+    const expense = await Expense.findOneAndUpdate(
+        { _id: req.params.id, user: req.user.id },
+        { title, amount, category },
+        { new: true }
+    );
+
+    res.json(expense);
+});
+
+// Delete expense
+router.delete("/expenses/:id", auth, async (req, res) => {
+    await Expense.findOneAndDelete({
+        _id: req.params.id,
+        user: req.user.id
+    });
+
+    res.json({ message: "Deleted" });
 });
 
 module.exports = router;
