@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const User = require("../models/user");
-const Expense = require("../models/Expense");
+const Expense = require("../models/expense");
 
 // Test route
 router.get("/test", (req, res) => {
